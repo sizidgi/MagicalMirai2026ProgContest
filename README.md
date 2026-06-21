@@ -45,12 +45,14 @@ npm run preview
 ```
 src/
   main.ts                 … エントリーポイント
+  style.css               … HUD・歌詞・浮遊ワード・音量スライダー等のスタイル
   config/song.ts          … 楽曲 ID・各種定数（TextAlive 公式値を固定）
   shushu/
     keywords.ts           … 収集対象ワードの検出（ongaku / senritsu / melody / uta / koe）
     ongakutaiBand.ts      … 収集数の管理と p5 による音楽隊（ongakutai）描画
   kashi/
     display.ts            … カラオケ歌詞（kashi）の DOM 描画
+    spanAnchorCache.ts    … 浮遊ワードの出現位置アンカーの記憶
     ukabuWord.ts          … 浮遊ワード（ukabu word）の UI とクリック収集
   textalive/
     player.ts             … TextAlive Player の初期化・再生同期
