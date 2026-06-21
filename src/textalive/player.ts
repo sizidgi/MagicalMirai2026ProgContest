@@ -27,6 +27,7 @@ export interface PlayerUi {
   floatingCollectHost: HTMLElement;
   noteCount: HTMLElement;
   beatIndicator: HTMLElement;
+  volumeSlider: HTMLInputElement;
   loadingOverlay: HTMLElement;
 }
 
@@ -172,12 +173,14 @@ export function createTextAlivePlayer(
     onPlay() {
       ui.playBtn.disabled = true;
       ui.pauseBtn.disabled = false;
+      floating.resume();
       songEndHandled = false;
     },
 
     onPause() {
       ui.playBtn.disabled = false;
       ui.pauseBtn.disabled = true;
+      floating.pause();
     },
 
     onStop() {
@@ -198,8 +201,6 @@ export function createTextAlivePlayer(
       const phrase = player.video.findPhrase(position);
       const chorus = player.findChorus(position);
       const beat = player.findBeat(position);
-      const char = player.video.findChar(position);
-      const chord = player.findChord(position);
 
       const beatStrength = beat ? beat.progress(position) : 0;
       const inChorus = chorus !== null;
@@ -234,14 +235,7 @@ export function createTextAlivePlayer(
         const phraseIndex = resolvePhraseIndex(player.video, enteredPhrase);
         stageManager.applyPhraseChange(phraseChange.entered, inChorus, phraseIndex);
       } else {
-        stageManager.onTimeUpdate(
-          position,
-          phrase,
-          inChorus,
-          beatStrength,
-          char?.text ?? "",
-          chord?.name ?? "",
-        );
+        stageManager.onTimeUpdate(position, phrase, inChorus, beatStrength);
       }
 
       // フレーズ間の無歌詞区間（メロディ終了→次フレーズまで約5秒など）でも浮遊を開始する
@@ -258,10 +252,6 @@ export function createTextAlivePlayer(
           wordChange,
           true,
         );
-      }
-
-      for (const word of wordChange.entered) {
-        stageManager.spawnFromLyricWord(word.text);
       }
 
       if (phrase) {
@@ -290,6 +280,11 @@ export function createTextAlivePlayer(
   };
 
   player.addListener(listener);
+
+  player.volume = Number(ui.volumeSlider.value);
+  ui.volumeSlider.addEventListener("input", () => {
+    player.volume = Number(ui.volumeSlider.value);
+  });
 
   ui.playBtn.addEventListener("click", () => {
     if (timerReady) player.requestPlay();

@@ -28,10 +28,3 @@ export const SMOG_BRUSH_RADIUS = 42;
 
 /** 1回目のデータスモッグが自動で晴れるまでの時間 [ms] */
 export const SMOG_AUTO_CLEAR_MS = 10000;
-
-/** ドラッグで動かせる視点の最大オフセット（px） */
-export const CAMERA_DRAG_MAX = 180;
-
-/** ホイールズーム範囲 */
-export const CAMERA_ZOOM_MIN = 0.82;
-export const CAMERA_ZOOM_MAX = 1.35;

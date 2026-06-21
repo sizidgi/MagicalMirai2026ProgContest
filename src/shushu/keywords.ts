@@ -3,27 +3,13 @@ import type { IPhrase } from "textalive-app-api";
 /** 歌詞から集められるキーワードの種類 */
 export type ShushuKeywordKind = "ongaku" | "senritsu" | "melody" | "uta" | "koe";
 
-export type NoteKind = ShushuKeywordKind;
-
-export const SHUSHU_KEYWORD_LABELS = ["オンガク", "旋律", "メロディ", "歌", "コエ"] as const;
-
-export const SHUSHU_KEYWORD_ALIASES: Record<ShushuKeywordKind, string[]> = {
+const SHUSHU_KEYWORD_ALIASES: Record<ShushuKeywordKind, string[]> = {
   ongaku: ["オンガク", "音楽"],
   senritsu: ["旋律"],
   melody: ["メロディ"],
   uta: ["歌"],
   koe: ["コエ"],
 };
-
-export const COLLECT_ALIASES = SHUSHU_KEYWORD_ALIASES;
-
-export function getShushuLabel(kind: ShushuKeywordKind): string {
-  return SHUSHU_KEYWORD_ALIASES[kind][0];
-}
-
-export function getCollectLabel(kind: ShushuKeywordKind): string {
-  return getShushuLabel(kind);
-}
 
 /** フレーズ内の1か所分の収集対象 */
 export interface ShushuSpan {
@@ -39,8 +25,6 @@ export interface ShushuSpan {
   compactEnd: number;
 }
 
-export type CollectSpan = ShushuSpan;
-
 interface PhraseTextIndex {
   compact: string;
   wordRanges: { start: number; end: number }[];
@@ -48,10 +32,6 @@ interface PhraseTextIndex {
 
 export function makeSpanKey(phraseStartTime: number, span: ShushuSpan): string {
   return `${phraseStartTime}-${span.kind}-${span.label}-${span.startWordIndex}`;
-}
-
-export function collectSpanKey(phraseStartTime: number, span: ShushuSpan): string {
-  return makeSpanKey(phraseStartTime, span);
 }
 
 export function isSpanKeyInPhrase(phraseStartTime: number, spanKey: string): boolean {
@@ -78,7 +58,7 @@ function buildPhraseTextIndex(words: IPhrase["children"]): PhraseTextIndex {
   return { compact, wordRanges };
 }
 
-export function wordToShushuKind(word: string): ShushuKeywordKind | null {
+function wordToShushuKind(word: string): ShushuKeywordKind | null {
   if (/オンガク|音楽/.test(word)) return "ongaku";
   if (/メロディ/.test(word)) return "melody";
   if (/旋律/.test(word)) return "senritsu";
@@ -87,11 +67,7 @@ export function wordToShushuKind(word: string): ShushuKeywordKind | null {
   return null;
 }
 
-export function wordToCreatureKind(word: string): ShushuKeywordKind | null {
-  return wordToShushuKind(word);
-}
-
-export function listShushuKindsInText(text: string): ShushuKeywordKind[] {
+function listShushuKindsInText(text: string): ShushuKeywordKind[] {
   const kinds: ShushuKeywordKind[] = [];
   if (/オンガク|音楽/.test(text)) kinds.push("ongaku");
   if (/旋律/.test(text)) kinds.push("senritsu");
@@ -99,14 +75,6 @@ export function listShushuKindsInText(text: string): ShushuKeywordKind[] {
   if (/歌/.test(text)) kinds.push("uta");
   if (/コエ/.test(text)) kinds.push("koe");
   return kinds;
-}
-
-export function listShushuKindsInPhrase(phraseText: string): ShushuKeywordKind[] {
-  return listShushuKindsInText(phraseText);
-}
-
-export function phraseToCreatureKinds(phraseText: string): ShushuKeywordKind[] {
-  return listShushuKindsInPhrase(phraseText);
 }
 
 export function resolveWordKind(wordIndex: number, phrase: IPhrase): ShushuKeywordKind | null {
@@ -237,10 +205,6 @@ function resolveSpanTiming(
     return null;
   }
   return { startTime, endTime };
-}
-
-export function findCollectSpans(phrase: IPhrase): ShushuSpan[] {
-  return detectShushuSpans(phrase);
 }
 
 export function findSpanForWord(wordIndex: number, spans: ShushuSpan[]): ShushuSpan | null {

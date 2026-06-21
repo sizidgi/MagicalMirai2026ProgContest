@@ -2,12 +2,10 @@ import type p5 from "p5";
 import type { StageTheme } from "../stage/themes";
 import { isSpanKeyInPhrase } from "./keywords";
 
-export interface OngakutaiMemberPos {
+interface MemberPos {
   x: number;
   y: number;
 }
-
-export type BandMemberPos = OngakutaiMemberPos;
 
 /**
  * 歌詞から集めた音符の数と、画面下の音楽隊（ongakutai）の描画を管理する。
@@ -49,24 +47,20 @@ export class OngakutaiBand {
     }
   }
 
-  getBandScale(): number {
-    return 0.68 + Math.min(this.collectedCount, 20) * 0.07;
-  }
-
   getMemberPositions(
     p: p5,
     width: number,
     height: number,
     beatPulse: number,
-  ): OngakutaiMemberPos[] {
+  ): MemberPos[] {
     const count = this.collectedCount;
     if (count <= 0) return [];
 
-    const scale = this.getBandScale();
+    const scale = 0.68 + Math.min(count, 20) * 0.07;
     const cx = width / 2;
     const cy = height * 0.72;
     const members = Math.min(count, 21);
-    const positions: OngakutaiMemberPos[] = [];
+    const positions: MemberPos[] = [];
 
     for (let i = 0; i < members; i++) {
       const angle = p.map(i, 0, members, p.PI * 0.15, p.PI * 0.85);
@@ -79,16 +73,7 @@ export class OngakutaiBand {
     return positions;
   }
 
-  getBandMemberPositions(
-    p: p5,
-    width: number,
-    height: number,
-    beatPulse: number,
-  ): OngakutaiMemberPos[] {
-    return this.getMemberPositions(p, width, height, beatPulse);
-  }
-
-  drawOngakutai(
+  drawMusicBand(
     p: p5,
     theme: StageTheme,
     width: number,
@@ -98,7 +83,7 @@ export class OngakutaiBand {
     const count = this.collectedCount;
     if (count <= 0) return;
 
-    const scale = this.getBandScale();
+    const scale = 0.68 + Math.min(count, 20) * 0.07;
     const cx = width / 2;
     const cy = height * 0.72;
     const members = Math.min(count, 21);
@@ -125,16 +110,4 @@ export class OngakutaiBand {
 
     p.pop();
   }
-
-  drawMusicBand(
-    p: p5,
-    theme: StageTheme,
-    width: number,
-    height: number,
-    beatPulse: number,
-  ): void {
-    this.drawOngakutai(p, theme, width, height, beatPulse);
-  }
 }
-
-export class NoteCreatureField extends OngakutaiBand {}

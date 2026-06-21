@@ -1,5 +1,3 @@
-import type p5 from "p5";
-
 /** ステージセットのビジュアルテーマ */
 export interface StageTheme {
   id: string;
@@ -141,12 +139,6 @@ export const STAGE_THEMES: StageTheme[] = [
   THEME_FUTURE,
 ];
 
-const THEME_BY_ID = new Map(STAGE_THEMES.map((t) => [t.id, t]));
-
-export function getThemeById(id: string): StageTheme {
-  return THEME_BY_ID.get(id) ?? THEME_EMPTY;
-}
-
 /** 歌詞テキストとサビ判定からテーマを選ぶ */
 export function pickThemeForPhrase(
   phraseText: string,
@@ -197,14 +189,6 @@ function lerp3(
     a[1] + (b[1] - a[1]) * t,
     a[2] + (b[2] - a[2]) * t,
   ];
-}
-
-export function rgb(
-  p: p5,
-  color: [number, number, number],
-  alpha = 255,
-): p5.Color {
-  return p.color(color[0], color[1], color[2], alpha);
 }
 
 export function applyDesaturate(

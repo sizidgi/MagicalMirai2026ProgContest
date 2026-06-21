@@ -1,5 +1,5 @@
 import type p5 from "p5";
-import { applyDesaturate, rgb, type StageTheme } from "../stage/themes";
+import { applyDesaturate, type StageTheme } from "../stage/themes";
 
 interface Particle {
   x: number;
@@ -39,40 +39,6 @@ export class ParticleField {
       });
     }
     void theme;
-  }
-
-  spawnBurst(p: p5, cx: number, cy: number, theme: StageTheme, count: number): void {
-    for (let i = 0; i < count; i++) {
-      this.particles.push({
-        x: cx + p.random(-40, 40),
-        y: cy + p.random(-16, 16),
-        vx: p.random(-2.8, 2.8),
-        vy: p.random(-3.6, -0.5),
-        life: p.random(0.5, 1),
-        size: p.random(3, 10),
-        kind: p.random() > 0.5 ? "note" : "spark",
-      });
-    }
-    void theme;
-  }
-
-  spawnAmbient(p: p5, w: number, h: number, theme: StageTheme, strength: number): void {
-    const rate = 0.28 + strength * 0.5 + theme.smogDensity * 0.3;
-    if (p.random() > rate) {
-      return;
-    }
-
-    const kind: Particle["kind"] = p.random() > 0.55 ? "spark" : "ember";
-
-    this.particles.push({
-      x: p.random(w),
-      y: h + 10,
-      vx: p.random(-0.5, 0.5),
-      vy: p.random(-2, -0.4),
-      life: p.random(0.4, 1),
-      size: p.random(2, 7),
-      kind,
-    });
   }
 
   update(p: p5, w: number, h: number): void {
@@ -220,12 +186,4 @@ export function drawWhiteVignette(p: p5, w: number, h: number, amount: number): 
     p.rect(0, 0, w, h * t * 0.15);
     p.rect(0, h * (1 - t * 0.15), w, h * t * 0.15);
   }
-}
-
-export function rgbColor(
-  p: p5,
-  c: [number, number, number],
-  alpha = 255,
-): p5.Color {
-  return rgb(p, c, alpha);
 }

@@ -22,7 +22,9 @@ export class UkabuWordLayer {
   private items: UkabuItem[] = [];
   private readonly spawnedSpanKeys = new Set<string>();
   private lastTick = performance.now();
-  private rafId = 0;
+  private paused = false;
+  private pauseStartedAt = 0;
+  private clockOffset = 0;
 
   constructor(
     private readonly host: HTMLElement,
@@ -30,6 +32,8 @@ export class UkabuWordLayer {
     private readonly isSpanCollected: (spanKey: string) => boolean,
   ) {
     this.host.addEventListener("click", (event) => {
+      if (this.paused) return;
+
       const el = (event.target as HTMLElement).closest<HTMLButtonElement>(".floating-collect");
       if (!el?.dataset.collectKind || !el.dataset.collectSpanKey) return;
 
@@ -48,7 +52,7 @@ export class UkabuWordLayer {
     });
 
     this.tick = this.tick.bind(this);
-    this.rafId = requestAnimationFrame(this.tick);
+    requestAnimationFrame(this.tick);
   }
 
   hasSpawnedSpan(spanKey: string): boolean {
@@ -89,7 +93,7 @@ export class UkabuWordLayer {
       spanKey,
       kind,
       el,
-      bornAt: performance.now(),
+      bornAt: performance.now() - this.clockOffset,
       x: originX,
       y: originY,
       vx: Math.cos(angle) * speed,
@@ -110,19 +114,36 @@ export class UkabuWordLayer {
     this.host.replaceChildren();
     this.items = [];
     this.spawnedSpanKeys.clear();
+    this.paused = false;
+    this.clockOffset = 0;
+    this.host.classList.remove("floating-collect-host--paused");
   }
 
-  dispose(): void {
-    cancelAnimationFrame(this.rafId);
-    this.reset();
+  pause(): void {
+    if (this.paused) return;
+    this.paused = true;
+    this.pauseStartedAt = performance.now();
+    this.host.classList.add("floating-collect-host--paused");
+  }
+
+  resume(): void {
+    if (!this.paused) return;
+    this.clockOffset += performance.now() - this.pauseStartedAt;
+    this.paused = false;
+    this.lastTick = performance.now();
+    this.host.classList.remove("floating-collect-host--paused");
   }
 
   private tick(now: number): void {
+    requestAnimationFrame(this.tick);
+    if (this.paused) return;
+
     const delta = Math.min(48, now - this.lastTick);
     this.lastTick = now;
+    const effectiveNow = now - this.clockOffset;
 
     this.items = this.items.filter((item) => {
-      const age = now - item.bornAt;
+      const age = effectiveNow - item.bornAt;
       if (age >= UKABU_LIFETIME_MS) {
         this.spawnedSpanKeys.delete(item.spanKey);
         item.el.remove();
@@ -141,42 +162,5 @@ export class UkabuWordLayer {
       item.el.style.opacity = String(Math.max(0, opacity));
       return true;
     });
-
-    this.rafId = requestAnimationFrame(this.tick);
   }
-}
-
-export class FloatingCollectLayer extends UkabuWordLayer {}
-
-/** 歌い終わった直後に浮遊体を出す（フレーム跨ぎも検出） */
-export function shouldStartUkabu(
-  span: { startTime: number; endTime: number },
-  position: number,
-  lastPosition = 0,
-): boolean {
-  if (position < span.startTime) return false;
-  if (lastPosition < span.endTime && position >= span.endTime) return true;
-  return position >= span.endTime;
-}
-
-export function shouldSpawnFloat(
-  span: { startTime: number; endTime: number },
-  position: number,
-): boolean {
-  return shouldStartUkabu(span, position);
-}
-
-/** フレーズ終了時 — 歌われた収集ワードは必ず浮遊させる */
-export function shouldUkabuOnPhraseEnd(
-  span: { startTime: number; endTime: number },
-  lastPosition: number,
-): boolean {
-  return lastPosition >= span.startTime;
-}
-
-export function shouldSpawnFloatOnPhraseExit(
-  span: { startTime: number; endTime: number },
-  lastPosition: number,
-): boolean {
-  return shouldUkabuOnPhraseEnd(span, lastPosition);
 }

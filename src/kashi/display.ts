@@ -1,27 +1,14 @@
-import type { IChar, IPhrase } from "textalive-app-api";
+import type { IPhrase } from "textalive-app-api";
 import {
   detectShushuSpans,
   findSpanForWord,
   makeSpanKey,
   resolveWordKind,
-  type ShushuKeywordKind,
 } from "../shushu/keywords";
 
 export interface KashiRenderOptions {
   isSpanCollected: (spanKey: string) => boolean;
   activeFloatingSpanKeys: ReadonlySet<string>;
-}
-
-export type LyricRenderOptions = KashiRenderOptions;
-
-export function listPhraseChars(phrase: IPhrase): IChar[] {
-  const chars: IChar[] = [];
-  for (const word of phrase.children) {
-    for (const char of word.children) {
-      chars.push(char);
-    }
-  }
-  return chars;
 }
 
 function isHiddenWhileUkabu(
@@ -89,8 +76,6 @@ export function renderPhraseKashi(
   });
 }
 
-export const renderPhraseLyrics = renderPhraseKashi;
-
 export function measureSpanAnchor(
   lyricDisplay: HTMLElement,
   spanKey: string,
@@ -105,5 +90,3 @@ export function measureSpanAnchor(
   const rect = panel?.getBoundingClientRect() ?? lyricDisplay.getBoundingClientRect();
   return { x: rect.left + rect.width / 2, y: rect.top + rect.height * 0.35 };
 }
-
-export type NoteKind = ShushuKeywordKind;

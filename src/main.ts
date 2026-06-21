@@ -30,6 +30,7 @@ function main(): void {
     floatingCollectHost: document.getElementById("floating-collect-host") as HTMLElement,
     noteCount: document.getElementById("note-count") as HTMLElement,
     beatIndicator: document.getElementById("beat-indicator") as HTMLElement,
+    volumeSlider: document.getElementById("volume-slider") as HTMLInputElement,
     loadingOverlay: document.getElementById("loading") as HTMLElement,
   });
 }

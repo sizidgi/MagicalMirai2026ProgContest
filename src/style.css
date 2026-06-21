@@ -71,14 +71,6 @@ body {
   text-shadow: 0 2px 24px rgba(0, 0, 0, 0.55);
 }
 
-.eyebrow {
-  margin: 0;
-  font-size: 0.72rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(255, 220, 160, 0.75);
-}
-
 .subtitle {
   margin: 0;
   font-size: 0.92rem;
@@ -147,6 +139,10 @@ body {
   inset: 0;
   pointer-events: none;
   z-index: 5;
+}
+
+.floating-collect-host--paused .floating-collect {
+  pointer-events: none;
 }
 
 .floating-collect {
@@ -225,6 +221,31 @@ body {
   color: rgba(245, 240, 232, 0.68);
 }
 
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 220, 160, 0.12);
+}
+
+.volume-label {
+  flex: 0 0 auto;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: rgba(245, 240, 232, 0.78);
+}
+
+.volume-control input[type="range"] {
+  flex: 1;
+  min-width: 0;
+  height: 4px;
+  margin: 0;
+  accent-color: #ffbe58;
+  cursor: pointer;
+}
+
 #note-count {
   font-weight: 700;
 }
@@ -290,144 +311,4 @@ body {
   background: rgba(255, 255, 255, 0.08);
   padding: 2px 6px;
   border-radius: 4px;
-}
-
-/* --- オンボーディング（案1+3） --- */
-
-.onboarding {
-  position: absolute;
-  inset: 0;
-  z-index: 8;
-  pointer-events: none;
-}
-
-.onboarding-card {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  pointer-events: auto;
-  width: min(440px, 90vw);
-  padding: 32px 36px;
-  border-radius: 18px;
-  border: 1px solid rgba(255, 220, 160, 0.28);
-  background: rgba(10, 10, 18, 0.88);
-  backdrop-filter: blur(12px);
-  text-align: center;
-}
-
-.onboarding-eyebrow {
-  margin: 0 0 8px;
-  font-size: 0.72rem;
-  letter-spacing: 0.16em;
-  color: rgba(255, 210, 140, 0.75);
-}
-
-.onboarding-card h2 {
-  margin: 0 0 10px;
-  font-size: 1.35rem;
-  font-weight: 900;
-}
-
-.onboarding-desc {
-  margin: 0 0 20px;
-  font-size: 0.92rem;
-  color: rgba(245, 240, 232, 0.72);
-}
-
-#future-word-input {
-  width: 100%;
-  padding: 14px 16px;
-  margin-bottom: 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 220, 160, 0.25);
-  background: rgba(255, 255, 255, 0.06);
-  color: #fff7ea;
-  font-size: 1.2rem;
-  font-family: inherit;
-  text-align: center;
-}
-
-#future-word-input:focus {
-  outline: none;
-  border-color: rgba(255, 190, 80, 0.55);
-}
-
-.onboarding-card button,
-.onboarding-bar button {
-  border: 1px solid rgba(255, 220, 160, 0.35);
-  background: rgba(255, 180, 80, 0.18);
-  color: #fff7ea;
-  padding: 12px 22px;
-  border-radius: 999px;
-  cursor: pointer;
-  font-family: inherit;
-  font-weight: 700;
-  transition: background 0.2s, transform 0.15s;
-}
-
-.onboarding-card button:hover,
-.onboarding-bar button:hover {
-  background: rgba(255, 180, 80, 0.32);
-  transform: translateY(-1px);
-}
-
-.onboarding-bar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  pointer-events: auto;
-  padding: 16px 24px 24px;
-  background: linear-gradient(to top, rgba(6, 6, 12, 0.92), transparent);
-}
-
-.onboarding-bar-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 16px 20px;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 220, 160, 0.18);
-  background: rgba(8, 8, 16, 0.75);
-  backdrop-filter: blur(10px);
-}
-
-.onboarding-bar-title {
-  margin: 0 0 4px;
-  font-weight: 700;
-}
-
-.onboarding-bar-sub {
-  margin: 0;
-  font-size: 0.85rem;
-  color: rgba(245, 240, 232, 0.68);
-}
-
-.color-palette {
-  display: flex;
-  gap: 10px;
-}
-
-.palette-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.25);
-  cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s;
-}
-
-.palette-btn.active {
-  transform: scale(1.15);
-  box-shadow: 0 0 16px rgba(255, 255, 255, 0.45);
-  border-color: #fff;
-}
-
-.palette-btn:hover {
-  transform: scale(1.08);
 }

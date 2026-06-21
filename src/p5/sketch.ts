@@ -59,7 +59,7 @@ export function createSketch(stageManager: StageManager, host: HTMLElement): p5 
       notes.drawMusicBand(p, displayTheme, w, h, runtime.beatPulse);
 
       if (notes.collectedCount > 0 && !smog.active) {
-        const members = notes.getBandMemberPositions(p, w, h, runtime.beatPulse);
+        const members = notes.getMemberPositions(p, w, h, runtime.beatPulse);
         particles.spawnFromBandMembers(p, members, displayTheme, runtime.beatPulse);
       }
       particles.update(p, w, h);
@@ -72,20 +72,11 @@ export function createSketch(stageManager: StageManager, host: HTMLElement): p5 
     };
 
     p.mousePressed = () => {
-      stageManager.pointerPressed(p.mouseX, p.mouseY, p.width, p.height);
+      stageManager.pointerPressed(p.mouseX, p.mouseY);
     };
 
     p.mouseDragged = () => {
       stageManager.pointerDragged(p.mouseX, p.mouseY);
-    };
-
-    p.mouseReleased = () => {
-      stageManager.pointerReleased();
-    };
-
-    p.mouseWheel = (event: WheelEvent) => {
-      stageManager.wheelZoom(event.deltaY);
-      return false;
     };
   };
 
