@@ -1,14 +1,12 @@
 import type { ShushuKeywordKind } from "../shushu/keywords";
 import { isSpanKeyInPhrase } from "../shushu/keywords";
 
-const UKABU_LIFETIME_MS = 10000;
-const UKABU_FADE_MS = 2200;
+const UKABU_OFFSCREEN_MARGIN = 48;
 
 interface UkabuItem {
   spanKey: string;
   kind: ShushuKeywordKind;
   el: HTMLButtonElement;
-  bornAt: number;
   x: number;
   y: number;
   vx: number;
@@ -23,8 +21,6 @@ export class UkabuWordLayer {
   private readonly spawnedSpanKeys = new Set<string>();
   private lastTick = performance.now();
   private paused = false;
-  private pauseStartedAt = 0;
-  private clockOffset = 0;
 
   constructor(
     private readonly host: HTMLElement,
@@ -63,6 +59,11 @@ export class UkabuWordLayer {
     return new Set(this.items.map((item) => item.spanKey));
   }
 
+  /** 浮遊開始済み（画面外・未収集含む）の spanKey */
+  getSpawnedSpanKeys(): ReadonlySet<string> {
+    return this.spawnedSpanKeys;
+  }
+
   spawn(
     spanKey: string,
     kind: ShushuKeywordKind,
@@ -93,7 +94,6 @@ export class UkabuWordLayer {
       spanKey,
       kind,
       el,
-      bornAt: performance.now() - this.clockOffset,
       x: originX,
       y: originY,
       vx: Math.cos(angle) * speed,
@@ -115,23 +115,34 @@ export class UkabuWordLayer {
     this.items = [];
     this.spawnedSpanKeys.clear();
     this.paused = false;
-    this.clockOffset = 0;
     this.host.classList.remove("floating-collect-host--paused");
   }
 
   pause(): void {
     if (this.paused) return;
     this.paused = true;
-    this.pauseStartedAt = performance.now();
     this.host.classList.add("floating-collect-host--paused");
   }
 
   resume(): void {
     if (!this.paused) return;
-    this.clockOffset += performance.now() - this.pauseStartedAt;
     this.paused = false;
     this.lastTick = performance.now();
     this.host.classList.remove("floating-collect-host--paused");
+  }
+
+  private removeFloatingItem(item: UkabuItem): void {
+    item.el.remove();
+  }
+
+  private isOffScreen(x: number, y: number): boolean {
+    const m = UKABU_OFFSCREEN_MARGIN;
+    return (
+      x < -m ||
+      x > window.innerWidth + m ||
+      y < -m ||
+      y > window.innerHeight + m
+    );
   }
 
   private tick(now: number): void {
@@ -140,26 +151,18 @@ export class UkabuWordLayer {
 
     const delta = Math.min(48, now - this.lastTick);
     this.lastTick = now;
-    const effectiveNow = now - this.clockOffset;
 
     this.items = this.items.filter((item) => {
-      const age = effectiveNow - item.bornAt;
-      if (age >= UKABU_LIFETIME_MS) {
-        this.spawnedSpanKeys.delete(item.spanKey);
-        item.el.remove();
-        return false;
-      }
-
       item.x += item.vx * delta;
       item.y += item.vy * delta;
       item.el.style.left = `${item.x}px`;
       item.el.style.top = `${item.y}px`;
 
-      let opacity = 1;
-      if (age > UKABU_LIFETIME_MS - UKABU_FADE_MS) {
-        opacity = (UKABU_LIFETIME_MS - age) / UKABU_FADE_MS;
+      if (this.isOffScreen(item.x, item.y)) {
+        this.removeFloatingItem(item);
+        return false;
       }
-      item.el.style.opacity = String(Math.max(0, opacity));
+
       return true;
     });
   }

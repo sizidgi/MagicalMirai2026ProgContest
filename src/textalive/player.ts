@@ -39,6 +39,7 @@ function buildKashiRenderOptions(stageManager: StageManager, floating: UkabuWord
   return {
     isSpanCollected: (spanKey: string) => stageManager.isSpanCollected(spanKey),
     activeFloatingSpanKeys: floating.getActiveFloatingSpanKeys(),
+    spawnedSpanKeys: floating.getSpawnedSpanKeys(),
   };
 }
 

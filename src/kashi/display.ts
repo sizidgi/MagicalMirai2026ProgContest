@@ -9,17 +9,19 @@ import {
 export interface KashiRenderOptions {
   isSpanCollected: (spanKey: string) => boolean;
   activeFloatingSpanKeys: ReadonlySet<string>;
+  spawnedSpanKeys: ReadonlySet<string>;
 }
 
-function isHiddenWhileUkabu(
+function isHiddenCollectWord(
   wordIndex: number,
   phrase: IPhrase,
-  activeFloatingSpanKeys: ReadonlySet<string>,
+  options: KashiRenderOptions,
 ): boolean {
   for (const span of detectShushuSpans(phrase)) {
     if (wordIndex < span.startWordIndex || wordIndex > span.endWordIndex) continue;
     const key = makeSpanKey(phrase.startTime, span);
-    if (activeFloatingSpanKeys.has(key)) return true;
+    if (options.activeFloatingSpanKeys.has(key)) return true;
+    if (options.spawnedSpanKeys.has(key) && !options.isSpanCollected(key)) return true;
   }
   return false;
 }
@@ -35,7 +37,7 @@ export function renderPhraseKashi(
   if (!phrase) return;
 
   phrase.children.forEach((word, wordIndex) => {
-    if (isHiddenWhileUkabu(wordIndex, phrase, options.activeFloatingSpanKeys)) {
+    if (isHiddenCollectWord(wordIndex, phrase, options)) {
       return;
     }
 
