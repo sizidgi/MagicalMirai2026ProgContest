@@ -27,11 +27,14 @@ function main(): void {
     pauseBtn: document.getElementById("btn-pause") as HTMLButtonElement,
     stopBtn: document.getElementById("btn-stop") as HTMLButtonElement,
     lyricDisplay: document.getElementById("lyric-display") as HTMLElement,
+    chiriPhraseHost: document.getElementById("chiri-phrase-host") as HTMLElement,
     floatingCollectHost: document.getElementById("floating-collect-host") as HTMLElement,
     noteCount: document.getElementById("note-count") as HTMLElement,
     beatIndicator: document.getElementById("beat-indicator") as HTMLElement,
     volumeSlider: document.getElementById("volume-slider") as HTMLInputElement,
     loadingOverlay: document.getElementById("loading") as HTMLElement,
+    introOverlay: document.getElementById("intro-overlay") as HTMLElement,
+    startBtn: document.getElementById("btn-start") as HTMLButtonElement,
   });
 }
 

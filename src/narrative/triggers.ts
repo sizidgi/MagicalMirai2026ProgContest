@@ -13,3 +13,18 @@ export function detectNarrativeTrigger(phraseText: string): NarrativeTrigger | n
   }
   return null;
 }
+
+/** 「あなたはもう何も言わなかった」— 歌い終わりで歌詞を塵にする */
+export function isAnataMouNanimoIwanakatta(phraseText: string): boolean {
+  return /あなたは.*何も言わなかった|もう何も言わなかった/.test(phraseText);
+}
+
+/** エピローグ — （君は光の中で歌った）付近から時間加速 */
+export function isJikanKasokuKaishi(phraseText: string): boolean {
+  return /君は.*光.*歌った|光の中で歌った/.test(phraseText);
+}
+
+/** 楽曲末尾付近 [ms] — ここで停止ボタンと同じ終了処理 */
+export function isKyokuOwari(position: number, duration: number): boolean {
+  return position >= duration - 60;
+}

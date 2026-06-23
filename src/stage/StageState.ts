@@ -16,6 +16,10 @@ export interface StageRuntime {
   smogRevealed: boolean;
   smogRevealGlow: number;
   hiddenMelody: number;
+  /** 0–1: エピローグの時間加速 */
+  jikanKasoku: number;
+  /** 横方向スクロール量（px 相当） */
+  jikanKasokuScroll: number;
 }
 
 export function createInitialStageRuntime(theme: StageTheme): StageRuntime {
@@ -33,5 +37,7 @@ export function createInitialStageRuntime(theme: StageTheme): StageRuntime {
     smogRevealed: false,
     smogRevealGlow: 0,
     hiddenMelody: 0,
+    jikanKasoku: 0,
+    jikanKasokuScroll: 0,
   };
 }

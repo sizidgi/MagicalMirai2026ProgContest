@@ -34,7 +34,10 @@
         </section>
 
         <section class="hint-panel">
-          <p class="hint-main">集める言葉：オンガク · 旋律 · メロディ · 歌 · コエ</p>
+          <p class="hint-main">
+            <span class="hint-label">集める言葉</span>
+            <span class="hint-words">オンガク · 旋律 · メロディ · 歌 · コエ</span>
+          </p>
           <p class="hint-sub">集めた音：<span id="note-count">0</span></p>
           <label class="volume-control" for="volume-slider">
             <span class="volume-label">音量</span>
@@ -47,7 +50,21 @@
         </footer>
       </div>
 
+      <div id="chiri-phrase-host" aria-hidden="true"></div>
       <div id="floating-collect-host" aria-hidden="true"></div>
+
+      <div id="intro-overlay" class="intro-overlay hidden" aria-modal="true" role="dialog" aria-labelledby="intro-lead">
+        <div class="intro-stack">
+          <div class="intro-card">
+            <p id="intro-lead" class="intro-lead">
+              以下の言葉を歌詞から集めて<br />
+              あなたの音楽隊を作りましょう。
+            </p>
+            <p class="intro-words">オンガク · 旋律 · メロディ · 歌 · コエ</p>
+          </div>
+          <button id="btn-start" type="button" disabled>再生</button>
+        </div>
+      </div>
 
       <div id="loading" class="loading-overlay">
         <div class="loading-card">

@@ -10,6 +10,8 @@ export interface KashiRenderOptions {
   isSpanCollected: (spanKey: string) => boolean;
   activeFloatingSpanKeys: ReadonlySet<string>;
   spawnedSpanKeys: ReadonlySet<string>;
+  /** 塵にしたフレーズは次フレーズまで歌詞パネルに出さない */
+  hiddenPhraseStartTime?: number | null;
 }
 
 function isHiddenCollectWord(
@@ -35,6 +37,10 @@ export function renderPhraseKashi(
 ): void {
   container.replaceChildren();
   if (!phrase) return;
+
+  if (options.hiddenPhraseStartTime === phrase.startTime) {
+    return;
+  }
 
   phrase.children.forEach((word, wordIndex) => {
     if (isHiddenCollectWord(wordIndex, phrase, options)) {

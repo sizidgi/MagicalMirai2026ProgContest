@@ -35,6 +35,7 @@ export class StageManager {
   private canvasW = 1;
   private canvasH = 1;
   private smogElapsedMs = 0;
+  private jikanKasokuActive = false;
 
   constructor(private readonly session: UserSession) {
     this.runtime = createInitialStageRuntime(STAGE_THEMES[0]);
@@ -73,6 +74,20 @@ export class StageManager {
     this.notes.reset();
     this.smog.resize(this.canvasW, this.canvasH);
     this.smogElapsedMs = 0;
+    this.jikanKasokuActive = false;
+  }
+
+  isJikanKasokuChu(): boolean {
+    return this.jikanKasokuActive;
+  }
+
+  /** エピローグ — 時間加速演出を開始 */
+  beginJikanKasoku(): void {
+    if (this.jikanKasokuActive) return;
+    this.jikanKasokuActive = true;
+    this.runtime.narrativePhase = "finale";
+    this.runtime.wordRevealTarget = 1;
+    this.runtime.sceneFlash = 0.75;
   }
 
   isSpanCollected(spanKey: string): boolean {
@@ -108,6 +123,12 @@ export class StageManager {
       SCENE_TRANSITION_MS,
       this.transitionElapsed + deltaMs,
     );
+
+    if (this.jikanKasokuActive) {
+      this.runtime.jikanKasoku = Math.min(1, this.runtime.jikanKasoku + deltaMs * 0.00045);
+      const speed = 0.35 + this.runtime.jikanKasoku * 3.2;
+      this.runtime.jikanKasokuScroll += deltaMs * speed;
+    }
 
     this.runtime.colorSpread +=
       (this.runtime.colorSpreadTarget - this.runtime.colorSpread) * Math.min(1, deltaMs * 0.0018);
