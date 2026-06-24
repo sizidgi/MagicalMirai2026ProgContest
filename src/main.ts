@@ -35,6 +35,7 @@ function main(): void {
     loadingOverlay: document.getElementById("loading") as HTMLElement,
     introOverlay: document.getElementById("intro-overlay") as HTMLElement,
     startBtn: document.getElementById("btn-start") as HTMLButtonElement,
+    maruHikariTextHost: document.getElementById("maru-hikari-text-host") as HTMLElement,
   });
 }
 

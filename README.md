@@ -10,10 +10,13 @@
 
 歌詞のキーワード（オンガク・旋律・メロディ・歌・コエ）を集めて、画面下の「音楽隊」を育てていくリリック体験です。
 
-- **データスモッグ** — 歌詞「データスモッグ」でグリッド状のスモッグが出現。マウスドラッグで払う
-- **「青、かな」という歌詞からの解放感** — 空の色が広がる演出
+
+主な演出など
+- **操作説明** — 初回のみ、中央パネルと「再生」ボタンで体験開始
+- **データスモッグ** — 歌詞「データスモッグ」でグリッド状のスモッグが出現。マウスドラッグ/タッチスワイプで払う
+- **歌詞ごとの感情表現を背景の色で演出** — 空の色が広がる演出、ミライへの希望など
 - **音符収集** — 収集ワードが歌い終わると浮遊。クリックで集め、音楽隊が構成
-- **エピローグの終末への加速** — （君は光の中で歌った）以降、雲と光が右へ流れ、曲の終わりで停止。※世界観の表現上ネガ反転技法を使用しておりますが、お使いの端末が悪いわけではございません。
+- **エピローグの時間加速** — 雲と光が右へ流れ、曲の終わりで停止　※世界観の表現上ミクが停止するための表現として多重エフェクトを使用しておりますが、お使いの端末が悪いわけではございません。
 
 ほか、世界最後の音楽隊の儚く、美しい世界観に限りなく合わせられるよう、楽曲の歌詞の意味を持たせられるように画面に演出を加えています。
 
@@ -21,10 +24,15 @@
 
 | 操作 | 効果 |
 |------|------|
+| 初回「再生」（中央パネル） | 体験開始（以降はヘッダーの再生で再開） |
 | 再生 / Space | 楽曲の再生・一時停止 |
-| 浮遊ワードをクリック | 音符を収集、音楽隊編成 |
-| ドラッグ（データスモッグ出現時） | スモッグを払う |
+| 浮遊ワードをクリック | 音符を収集 |
+| ドラッグ / タッチスワイプ（データスモッグ出現時） | スモッグを払う |
 | 音量スライダー | 再生音量（0〜100） |
+
+## スマホ対応について
+
+**URL にアクセスすればスマホでも開けます**が、**快適な体験は PC 向け**です。
 
 ## セットアップ
 
@@ -47,26 +55,28 @@ npm run preview
 ```
 src/
   main.ts                 … エントリーポイント
-  style.css               … HUD・歌詞・浮遊ワード・音量スライダー等のスタイル
+  style.css               … HUD・歌詞・浮遊ワード・操作説明等
   config/song.ts          … 楽曲 ID・各種定数（TextAlive 公式値を固定）
   shushu/
-    keywords.ts           … 収集対象ワードの検出（ongaku / senritsu / melody / uta / koe）
-    ongakutaiBand.ts      … 収集数の管理と p5 による音楽隊（ongakutai）描画
+    keywords.ts           … 収集対象ワードの検出
+    ongakutaiBand.ts      … 音楽隊の管理と p5 描画
   kashi/
-    display.ts            … カラオケ歌詞（kashi）の DOM 描画
-    spanAnchorCache.ts    … 浮遊ワードの出現位置アンカーの記憶
-    ukabuWord.ts          … 浮遊ワード（ukabu word）の UI とクリック収集
+    display.ts            … カラオケ歌詞の DOM 描画
+    spanAnchorCache.ts    … 浮遊ワードの位置アンカー
+    ukabuWord.ts          … 浮遊ワード UI
+    chiriPhrase.ts        … 特定フレーズの塵演出
   textalive/
-    player.ts             … TextAlive Player の初期化・再生同期
+    player.ts             … TextAlive 同期・物語トリガー
   stage/
-    StageManager.ts       … 物語進行（スモッグ / 色 / テーマ切替 / 加速）
+    StageManager.ts       … 物語進行
     StageState.ts         … ステージ内部状態
-    themes.ts             … フレーズごとの配色テーマ
-  interaction/SmogGrid.ts   … データスモッグ（グリッド + 0/1 表現）
-  narrative/triggers.ts   … 歌詞トリガー（データスモッグ / 青、かな / 加速 等）
+    themes.ts             … フレーズごとの配色
+  interaction/SmogGrid.ts   … データスモッグ
+  narrative/triggers.ts   … 歌詞・時間トリガー
   p5/
-    sketch.ts             … p5.js メインループ
-    stageRenderer.ts      … 空・平原・時間加速・パーティクル描画
+    sketch.ts             … p5 メインループ
+    stageRenderer.ts      … 空・加速・パーティクル
+    maruHikariLayer.ts    … 心の球体（WEBGL）
   session/UserSession.ts    … セッション状態
 ```
 
@@ -76,25 +86,15 @@ src/
 2. `kashi/display.ts` が歌詞を描画し、収集対象ワードを青く表示
 3. ワードが歌い終わると `kashi/ukabuWord.ts` が浮遊体を出す（画面外へ出たら消える）
 4. クリックで `stage/StageManager.ts` → `shushu/ongakutaiBand.ts` に渡り、音楽隊が増える
-5. `p5/sketch.ts` が背景・スモッグ・音楽隊を描画
-
-### 物語演出の流れ（概要）
-
-| 段階 | きっかけ（歌詞） | 主な処理 |
-|------|------------------|----------|
-| 無色の世界 | 序盤 | `drawSky` の plainness、白いビネット |
-| 青、かな | `青、かな` | `colorSpread`、テーマ |
-| データスモッグ | `データスモッグ` | `SmogGrid`、ドラッグで払う |
-| 終わりへ加速 | `（君は光の中で歌った）` 付近 | `beginJikanKasoku`、`drawJikanKasokuLayer` |
-| 終了 | 曲の末尾 | 停止ボタンと同じリセット効果、終末を示す（`requestStop`） |
+5. `p5/sketch.ts` が背景・スモッグ・音楽隊・maruHikari 等を描画
 
 ### 命名について
 
-ドメイン語はローマ字（`shushu`, `kashi`, `ukabu`, `ongakutai`, `jikanKasoku`）、処理名は一般的な英語（`render`, `spawn`, `collect`）で統一しています。
+ドメイン語はローマ字（`shushu`, `kashi`, `ukabu`, `ongakutai`, `jikanKasoku`, `maruHikari`, `chiri`）、処理名は英語で統一しています。
 
 ## 楽曲データ
 
-`src/config/song.ts` に TextAlive 公式の `beatId` / `chordId` / `lyricDiffId` を固定しています。
+`src/config/song.ts` に TextAlive 公式の ID を固定しています。
 
 - 公式: https://developer.textalive.jp/events/magicalmirai2026/
 

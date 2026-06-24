@@ -12,8 +12,10 @@ import {
 import type { UserSession } from "../session/UserSession";
 import { StageManager } from "../stage/StageManager";
 import { isAnataMouNanimoIwanakatta, isJikanKasokuKaishi, isKyokuOwari } from "../narrative/triggers";
+import { MaruHikariTextOverlay } from "../kashi/maruHikariTextOverlay";
 import { ChiriPhraseLayer } from "../kashi/chiriPhrase";
 import { UkabuWordLayer } from "../kashi/ukabuWord";
+import { canvasPointToScreen, getNextCollectLandingPosition } from "../shushu/ongakutaiLayout";
 import { measureSpanAnchor, renderPhraseKashi } from "../kashi/display";
 import {
   clearSpanAnchorCache,
@@ -34,6 +36,7 @@ export interface PlayerUi {
   loadingOverlay: HTMLElement;
   introOverlay: HTMLElement;
   startBtn: HTMLButtonElement;
+  maruHikariTextHost: HTMLElement;
 }
 
 function syncNoteCountDisplay(stageManager: StageManager, ui: PlayerUi): void {
@@ -57,9 +60,12 @@ function spawnUkabuWord(
   lyricDisplay: HTMLElement,
 ): void {
   const spanKey = makeSpanKey(phrase.startTime, span);
-  if (stageManager.isSpanCollected(spanKey) || floating.hasSpawnedSpan(spanKey)) {
+  
+  if (stageManager.isSpanCollected(spanKey) || floating.hasSpawnedSpan(spanKey)) 
+  {
     return;
   }
+
   const fallback = measureSpanAnchor(lyricDisplay, spanKey);
   const anchor = getRememberedSpanAnchor(spanKey, fallback);
   floating.spawn(spanKey, span.kind, span.label, anchor.x, anchor.y);
@@ -88,6 +94,7 @@ export function createTextAlivePlayer(
   const appRoot = document.getElementById("app");
 
   const chiriPhrase = new ChiriPhraseLayer(ui.chiriPhraseHost);
+  const maruHikariText = new MaruHikariTextOverlay(ui.maruHikariTextHost);
 
   const floating = new UkabuWordLayer(
     ui.floatingCollectHost,
@@ -99,6 +106,20 @@ export function createTextAlivePlayer(
       return ok;
     },
     (spanKey) => stageManager.isSpanCollected(spanKey),
+    () => {
+      const snapshot = stageManager.getSnapshot();
+      const canvas = document.querySelector("#canvas-host canvas") as HTMLCanvasElement | null;
+      const width = canvas?.width ?? window.innerWidth;
+      const height = canvas?.height ?? window.innerHeight;
+      const landing = getNextCollectLandingPosition(
+        snapshot.notes.collectedCount,
+        width,
+        height,
+        snapshot.runtime.beatPulse,
+        Math.floor(performance.now() / 16),
+      );
+      return canvasPointToScreen(landing.x, landing.y, canvas);
+    },
   );
 
   const applyStopState = (): void => {
@@ -108,6 +129,7 @@ export function createTextAlivePlayer(
     ui.lyricDisplay.replaceChildren();
     floating.reset();
     chiriPhrase.reset();
+    maruHikariText.reset();
     clearSpanAnchorCache();
     stageManager.reset();
     lastPhrase = null;
@@ -116,11 +138,15 @@ export function createTextAlivePlayer(
     kyokuOwariShoriZumi = false;
     chiriPhraseZumi = false;
     experienceStarted = false;
-    appRoot?.classList.remove("jikan-kasoku-chu", "experience-chu");
+    appRoot?.classList.remove("jikan-kasoku-chu", "experience-chu", "maru-hikari-chu");
     syncNoteCountDisplay(stageManager, ui);
-    if (!introAcknowledged) {
+    
+    if (!introAcknowledged) 
+    {
       showIntro();
-    } else {
+    } 
+    else 
+    {
       ui.playBtn.disabled = false;
       ui.pauseBtn.disabled = true;
       ui.stopBtn.disabled = true;
@@ -169,14 +195,19 @@ export function createTextAlivePlayer(
 
     for (const exitedChar of charChange.left) {
       for (const span of detectShushuSpans(phrase)) {
+
         if (!isLabelEndChar(phrase, span, exitedChar)) continue;
+        
         spawnUkabuWord(phrase, span, floating, stageManager, ui.lyricDisplay);
+      
       }
     }
 
     for (const exitedWord of wordChange.left) {
       const wordIndex = phrase.children.indexOf(exitedWord);
+      
       if (wordIndex < 0) continue;
+
       for (const span of detectShushuSpans(phrase)) {
         if (!isSpanEndWord(span, wordIndex)) continue;
         if (exitedWord.children.length > 0) continue;
@@ -188,7 +219,8 @@ export function createTextAlivePlayer(
       const finished =
         isSpanFinished(span, position, prevPosition) ||
         (phraseEnding && isSpanAtPhraseTail(phrase, span) && checkTime >= span.endTime);
-      if (!finished) continue;
+      
+        if (!finished) continue;
       spawnUkabuWord(phrase, span, floating, stageManager, ui.lyricDisplay);
     }
   };
@@ -197,7 +229,9 @@ export function createTextAlivePlayer(
     if (chiriPhraseZumi || chiriPhrase.isAnimating() || chiriPhrase.getHiddenPhraseStartTime() !== null) {
       return;
     }
+
     if (!isAnataMouNanimoIwanakatta(phrase.text)) return;
+
     if (position < phrase.endTime || prevPosition >= phrase.endTime) return;
 
     const renderOptions = buildKashiRenderOptions(stageManager, floating, chiriPhrase);
@@ -216,9 +250,12 @@ export function createTextAlivePlayer(
 
     onVideoReady() {
       ui.loadingOverlay.classList.add("hidden");
-      if (player.video && player.video.phraseCount > 0) {
+
+      if (player.video && player.video.phraseCount > 0) 
+      {
         stageManager.bootstrapInitialScene(player.video.getPhrase(0), 0);
       }
+
       syncNoteCountDisplay(stageManager, ui);
       showIntro();
     },
@@ -247,11 +284,13 @@ export function createTextAlivePlayer(
     },
 
     onTimeUpdate(position: number) {
+
       if (!player.video || !session.isReady || !experienceStarted) return;
 
       if (isKyokuOwari(position, player.video.duration) && !kyokuOwariShoriZumi) {
         kyokuOwariShoriZumi = true;
         player.requestStop();
+
         return;
       }
 
@@ -267,11 +306,13 @@ export function createTextAlivePlayer(
       const charChange = player.video.findCharChange(lastPosition, position);
       let renderOptions = buildKashiRenderOptions(stageManager, floating, chiriPhrase);
 
-      if (!jikanKasokuKaishiZumi && phrase && isJikanKasokuKaishi(phrase.text)) {
+      if (!jikanKasokuKaishiZumi && phrase && isJikanKasokuKaishi(phrase.text)) 
+      {
         kaishiJikanKasoku();
       }
 
-      if (phraseChange.entered.some((entry) => isJikanKasokuKaishi(entry.text))) {
+      if (phraseChange.entered.some((entry) => isJikanKasokuKaishi(entry.text))) 
+      {
         kaishiJikanKasoku();
       }
 
@@ -288,14 +329,17 @@ export function createTextAlivePlayer(
             ? lastPhrase
             : null;
 
-      if (chiriCandidate) {
+      if (chiriCandidate) 
+      {
         tryBeginChiriPhrase(chiriCandidate, position, lastPosition);
       }
 
       renderOptions = buildKashiRenderOptions(stageManager, floating, chiriPhrase);
 
-      if (phraseChange.entered.length > 0) {
-        if (lastPhrase) {
+      if (phraseChange.entered.length > 0) 
+      {
+        if (lastPhrase) 
+        {
           renderPhraseKashi(
             ui.lyricDisplay,
             lastPhrase,
@@ -319,11 +363,11 @@ export function createTextAlivePlayer(
 
         const phraseIndex = resolvePhraseIndex(player.video, enteredPhrase);
         stageManager.applyPhraseChange(phraseChange.entered, inChorus, phraseIndex);
-      } else {
-        stageManager.onTimeUpdate(position, phrase, inChorus, beatStrength);
       }
 
-      // フレーズ間の無歌詞区間（メロディ終了→次フレーズまで約5秒など）でも浮遊を開始する
+      stageManager.onTimeUpdate(position, phrase, inChorus, beatStrength);
+
+      // フレーズ間の無歌詞区間
       const gapPhrase =
         !phrase && lastPhrase && position > lastPhrase.endTime ? lastPhrase : null;
       if (gapPhrase) {
@@ -358,6 +402,7 @@ export function createTextAlivePlayer(
       }
 
       syncNoteCountDisplay(stageManager, ui);
+      maruHikariText.update(position, stageManager.getSnapshot().runtime.maruHikariAlpha);
       ui.beatIndicator.style.opacity = String(0.25 + beatStrength * 0.75);
       ui.beatIndicator.style.transform = `scale(${1 + beatStrength * 0.45})`;
       lastPosition = position;
@@ -389,10 +434,13 @@ export function createTextAlivePlayer(
   ui.startBtn.addEventListener("click", () => beginExperience());
 
   window.addEventListener("keydown", (event) => {
-    if (event.code === "Space") {
+    if (event.code === "Space") 
+    {
       event.preventDefault();
       if (!timerReady) return;
-      if (!experienceStarted) {
+      
+      if (!experienceStarted) 
+      {
         if (introAcknowledged) {
           experienceStarted = true;
           appRoot?.classList.add("experience-chu");
@@ -401,9 +449,13 @@ export function createTextAlivePlayer(
         }
         return;
       }
-      if (player.isPlaying) {
+
+      if (player.isPlaying) 
+      {
         player.requestPause();
-      } else {
+      } 
+      else 
+      {
         player.requestPlay();
       }
     }

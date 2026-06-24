@@ -130,6 +130,76 @@ body {
   z-index: 3;
 }
 
+#app.maru-hikari-chu #hud,
+#app.maru-hikari-chu #floating-collect-host,
+#app.maru-hikari-chu #chiri-phrase-host {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+#maru-hikari-text-host {
+  position: fixed;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+}
+
+#app.maru-hikari-chu #maru-hikari-text-host {
+  opacity: 1;
+  visibility: visible;
+}
+
+.maru-hikari-text {
+  margin: 0;
+  max-width: min(92vw, 560px);
+  text-align: center;
+  font-size: clamp(1.05rem, 2.6vw, 1.55rem);
+  font-weight: 700;
+  line-height: 1.75;
+  letter-spacing: 0.04em;
+  color: rgba(245, 242, 238, 0.94);
+  text-shadow:
+    0 0 24px rgba(12, 16, 28, 0.95),
+    0 2px 20px rgba(0, 0, 0, 0.65);
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease;
+}
+
+.maru-hikari-text--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.maru-hikari-text--answer {
+  font-weight: 400;
+  color: rgba(220, 228, 242, 0.88);
+  font-size: clamp(0.98rem, 2.3vw, 1.38rem);
+}
+
+.maru-hikari-text--final {
+  font-size: clamp(1.12rem, 2.8vw, 1.65rem);
+  letter-spacing: 0.06em;
+  color: rgba(255, 252, 245, 0.96);
+}
+
+#app.smog-chu #hud {
+  pointer-events: none;
+}
+
+#app.smog-chu .transport {
+  pointer-events: auto;
+}
+
 #app.jikan-kasoku-chu .lyric-panel {
   z-index: 6;
 }
@@ -243,6 +313,165 @@ body {
   color: #fff6d0;
   transform: translate(-50%, -50%) scale(1.2);
   pointer-events: none;
+}
+
+.collect-flight {
+  position: fixed;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 9;
+  width: 0;
+  height: 0;
+  --flight-t: 0;
+  --fairy-core: rgba(196, 255, 252, 1);
+  --fairy-mid: rgba(118, 210, 255, 0.96);
+  --fairy-violet: rgba(186, 148, 255, 0.88);
+  --fairy-pink: rgba(255, 176, 238, 0.72);
+  --fairy-outer: rgba(92, 168, 255, 0.45);
+}
+
+.collect-flight__label {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  font-family: "Noto Sans JP", sans-serif;
+  font-size: clamp(1.35rem, 2.8vw, 2rem);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: #e8fbff;
+  text-shadow:
+    0 0 12px rgba(196, 255, 252, 1),
+    0 0 28px rgba(118, 210, 255, 0.95),
+    0 0 52px rgba(186, 148, 255, 0.75),
+    0 0 80px rgba(255, 176, 238, 0.45);
+  opacity: calc(1 - var(--flight-t) * 1.35);
+  filter: blur(calc(var(--flight-t) * 2px));
+}
+
+.collect-flight__orb {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(12px + var(--flight-t) * 34px);
+  height: calc(12px + var(--flight-t) * 34px);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 38% 32%,
+    var(--fairy-core) 0%,
+    var(--fairy-mid) 24%,
+    var(--fairy-violet) 58%,
+    var(--fairy-pink) 82%,
+    transparent 100%
+  );
+  box-shadow:
+    0 0 6px rgba(220, 255, 255, 1),
+    0 0 18px rgba(140, 228, 255, 0.98),
+    0 0 36px rgba(170, 140, 255, 0.88),
+    0 0 58px rgba(255, 170, 235, 0.62),
+    0 0 84px rgba(100, 180, 255, 0.42);
+  color: rgba(240, 252, 255, 0);
+  font-size: 0;
+  opacity: calc(var(--flight-t) * 1.08);
+  filter: saturate(1.35) brightness(1.12);
+  animation: collect-flight-shimmer 0.72s ease-in-out infinite alternate;
+}
+
+.collect-flight__orb::before,
+.collect-flight__orb::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.collect-flight__orb::before {
+  inset: -95%;
+  background: radial-gradient(
+    circle,
+    rgba(160, 240, 255, 0.55) 0%,
+    rgba(190, 150, 255, 0.28) 42%,
+    rgba(255, 170, 235, 0.12) 62%,
+    transparent 72%
+  );
+  opacity: calc(0.35 + var(--flight-t) * 0.65);
+  animation: collect-flight-halo 0.85s ease-in-out infinite alternate;
+}
+
+.collect-flight__orb::after {
+  inset: -28%;
+  border: 1px solid rgba(210, 255, 255, 0.55);
+  box-shadow:
+    inset 0 0 14px rgba(196, 255, 252, 0.85),
+    0 0 20px rgba(140, 228, 255, 0.75);
+  opacity: calc(var(--flight-t) * 0.85);
+}
+
+.collect-flight--active .collect-flight__orb {
+  color: rgba(232, 252, 255, calc((var(--flight-t) - 0.45) * 1.8));
+  font-size: calc(10px + var(--flight-t) * 8px);
+  text-shadow:
+    0 0 8px rgba(220, 255, 255, 1),
+    0 0 16px rgba(140, 228, 255, 0.95);
+}
+
+.collect-flight--landed .collect-flight__orb {
+  width: 38px;
+  height: 38px;
+  opacity: 1;
+  color: rgba(232, 252, 255, 1);
+  font-size: 18px;
+  filter: saturate(1.45) brightness(1.18);
+  box-shadow:
+    0 0 10px rgba(220, 255, 255, 1),
+    0 0 26px rgba(140, 228, 255, 1),
+    0 0 48px rgba(186, 148, 255, 0.92),
+    0 0 72px rgba(255, 176, 238, 0.72),
+    0 0 100px rgba(100, 180, 255, 0.5);
+}
+
+.collect-flight--landed .collect-flight__label {
+  opacity: 0;
+}
+
+@keyframes collect-flight-shimmer {
+  0% {
+    filter: saturate(1.25) brightness(1.08);
+    box-shadow:
+      0 0 6px rgba(220, 255, 255, 1),
+      0 0 18px rgba(140, 228, 255, 0.95),
+      0 0 36px rgba(170, 140, 255, 0.82),
+      0 0 58px rgba(255, 170, 235, 0.55),
+      0 0 84px rgba(100, 180, 255, 0.38);
+  }
+  100% {
+    filter: saturate(1.5) brightness(1.22);
+    box-shadow:
+      0 0 10px rgba(235, 255, 255, 1),
+      0 0 24px rgba(160, 235, 255, 1),
+      0 0 46px rgba(200, 160, 255, 0.95),
+      0 0 72px rgba(255, 185, 240, 0.72),
+      0 0 104px rgba(120, 195, 255, 0.52);
+  }
+}
+
+@keyframes collect-flight-halo {
+  0% {
+    transform: scale(0.92);
+    opacity: calc(0.28 + var(--flight-t) * 0.55);
+  }
+  100% {
+    transform: scale(1.08);
+    opacity: calc(0.42 + var(--flight-t) * 0.72);
+  }
 }
 
 .lyric-display .lyric-char--sung {

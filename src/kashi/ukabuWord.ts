@@ -1,5 +1,6 @@
 import type { ShushuKeywordKind } from "../shushu/keywords";
 import { isSpanKeyInPhrase } from "../shushu/keywords";
+import { CollectFlightLayer, type CollectLandingTarget } from "./collectFlight";
 
 const UKABU_OFFSCREEN_MARGIN = 48;
 
@@ -19,6 +20,8 @@ interface UkabuItem {
 export class UkabuWordLayer {
   private items: UkabuItem[] = [];
   private readonly spawnedSpanKeys = new Set<string>();
+  private readonly collectingSpanKeys = new Set<string>();
+  private readonly flight: CollectFlightLayer;
   private lastTick = performance.now();
   private paused = false;
 
@@ -26,7 +29,10 @@ export class UkabuWordLayer {
     private readonly host: HTMLElement,
     private readonly onCollect: (spanKey: string, kind: ShushuKeywordKind) => boolean,
     private readonly isSpanCollected: (spanKey: string) => boolean,
+    private readonly resolveLandingTarget: CollectLandingTarget,
   ) {
+    this.flight = new CollectFlightLayer(host);
+
     this.host.addEventListener("click", (event) => {
       if (this.paused) return;
 
@@ -37,14 +43,30 @@ export class UkabuWordLayer {
       const spanKey = el.dataset.collectSpanKey;
       const item = this.items.find((entry) => entry.el === el);
 
-      if (this.onCollect(spanKey, kind)) {
-        if (item) {
-          this.spawnedSpanKeys.delete(item.spanKey);
-        }
-        el.classList.add("floating-collect--got");
-        window.setTimeout(() => el.remove(), 380);
-        this.items = this.items.filter((entry) => entry.el !== el);
-      }
+      if (this.isSpanCollected(spanKey) ||
+          this.collectingSpanKeys.has(spanKey) ||
+          !item) 
+          { return; }
+
+      this.collectingSpanKeys.add(spanKey);
+      this.items = this.items.filter((entry) => entry.el !== el);
+
+      const label = el.textContent ?? "";
+
+      el.remove();
+
+      this.flight.launch({
+        originX: item.x,
+        originY: item.y,
+        label,
+        resolveTarget: this.resolveLandingTarget,
+        onArrive: () => {
+          this.collectingSpanKeys.delete(spanKey);
+          if (this.onCollect(spanKey, kind)) {
+            this.spawnedSpanKeys.delete(spanKey);
+          }
+        },
+      });
     });
 
     this.tick = this.tick.bind(this);
@@ -61,7 +83,7 @@ export class UkabuWordLayer {
 
   /** 浮遊開始済み（画面外・未収集含む）の spanKey */
   getSpawnedSpanKeys(): ReadonlySet<string> {
-    return this.spawnedSpanKeys;
+    return new Set(this.spawnedSpanKeys);
   }
 
   spawn(
@@ -71,9 +93,11 @@ export class UkabuWordLayer {
     originX: number,
     originY: number,
   ): void {
-    if (this.isSpanCollected(spanKey) || this.spawnedSpanKeys.has(spanKey)) {
-      return;
-    }
+    if (
+      this.isSpanCollected(spanKey) ||
+      this.spawnedSpanKeys.has(spanKey) ||
+      this.collectingSpanKeys.has(spanKey)
+    ) {return;}
 
     this.spawnedSpanKeys.add(spanKey);
 
@@ -111,9 +135,11 @@ export class UkabuWordLayer {
   }
 
   reset(): void {
+    this.flight.reset();
     this.host.replaceChildren();
     this.items = [];
     this.spawnedSpanKeys.clear();
+    this.collectingSpanKeys.clear();
     this.paused = false;
     this.host.classList.remove("floating-collect-host--paused");
   }

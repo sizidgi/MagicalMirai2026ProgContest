@@ -2,7 +2,7 @@ import type { IPhrase } from "textalive-app-api";
 import type { ShushuKeywordKind } from "../shushu/keywords";
 import { OngakutaiBand } from "../shushu/ongakutaiBand";
 import { SmogGrid } from "../interaction/SmogGrid";
-import { detectNarrativeTrigger } from "../narrative/triggers";
+import { detectNarrativeTrigger, getMaruHikariEnvelope } from "../narrative/triggers";
 import {
   SCENE_TRANSITION_MS,
   SMOG_BRUSH_RADIUS,
@@ -36,6 +36,7 @@ export class StageManager {
   private canvasH = 1;
   private smogElapsedMs = 0;
   private jikanKasokuActive = false;
+  private playbackMs = 0;
 
   constructor(private readonly session: UserSession) {
     this.runtime = createInitialStageRuntime(STAGE_THEMES[0]);
@@ -75,10 +76,17 @@ export class StageManager {
     this.smog.resize(this.canvasW, this.canvasH);
     this.smogElapsedMs = 0;
     this.jikanKasokuActive = false;
+    this.playbackMs = 0;
   }
 
   isJikanKasokuChu(): boolean {
     return this.jikanKasokuActive;
+  }
+
+  /** スモッグを払える状態（タッチ／マウス） */
+  isSmogWipeActive(): boolean 
+  {
+    return this.smog.active && !this.smog.revealed;
   }
 
   /** エピローグ — 時間加速演出を開始 */
@@ -117,6 +125,8 @@ export class StageManager {
   }
 
   updateFrame(deltaMs: number): void {
+    this.applyMaruHikariEnvelope(this.playbackMs);
+
     this.runtime.beatPulse *= 0.88;
     this.runtime.sceneFlash = Math.max(0, this.runtime.sceneFlash - deltaMs * 0.002);
     this.transitionElapsed = Math.min(
@@ -153,7 +163,7 @@ export class StageManager {
   }
 
   onTimeUpdate(
-    _position: number,
+    position: number,
     phrase: IPhrase | null,
     inChorus: boolean,
     beatStrength: number,
@@ -161,6 +171,9 @@ export class StageManager {
     if (beatStrength > 0.05) {
       this.runtime.beatPulse = Math.max(this.runtime.beatPulse, beatStrength);
     }
+
+    this.playbackMs = position;
+    this.applyMaruHikariEnvelope(position);
 
     if (phrase) {
       this.applyThemeFromPhrase(phrase.text, inChorus, this.runtime.phraseIndex);
@@ -209,6 +222,18 @@ export class StageManager {
     this.runtime.hiddenMelody = 0.4;
     this.runtime.colorSpreadTarget = Math.max(this.runtime.colorSpreadTarget, 0.75);
     this.runtime.sceneFlash = 0.9;
+  }
+
+  private applyMaruHikariEnvelope(positionMs: number): void 
+  {
+    const envelope = getMaruHikariEnvelope(positionMs);
+    if (envelope) {
+      this.runtime.maruHikariFade = envelope.progress;
+      this.runtime.maruHikariAlpha = envelope.alpha;
+    } else {
+      this.runtime.maruHikariFade = -1;
+      this.runtime.maruHikariAlpha = 0;
+    }
   }
 
   private applyTheme(next: StageTheme): void {

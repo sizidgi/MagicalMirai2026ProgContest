@@ -1,11 +1,7 @@
 import type p5 from "p5";
 import type { StageTheme } from "../stage/themes";
+import { computeOngakutaiMemberPositions } from "./ongakutaiLayout";
 import { isSpanKeyInPhrase } from "./keywords";
-
-interface MemberPos {
-  x: number;
-  y: number;
-}
 
 /**
  * 歌詞から集めた音符の数と、画面下の音楽隊（ongakutai）の描画を管理する。
@@ -21,17 +17,22 @@ export class OngakutaiBand {
     this.collectedSpanKeys.clear();
   }
 
-  isSpanCollected(spanKey: string): boolean {
+  isSpanCollected(spanKey: string): boolean 
+  {
     return this.collectedSpanKeys.has(spanKey);
   }
 
   /** 1か所分の出現を収集（同じスパンは1回まで） */
-  collectSpan(spanKey: string): boolean {
-    if (this.collectedSpanKeys.has(spanKey)) {
+  collectSpan(spanKey: string): boolean 
+  {
+    if (this.collectedSpanKeys.has(spanKey)) 
+    {
       return false;
     }
+
     this.collectedSpanKeys.add(spanKey);
     this.collectedCount++;
+
     return true;
   }
 
@@ -52,25 +53,14 @@ export class OngakutaiBand {
     width: number,
     height: number,
     beatPulse: number,
-  ): MemberPos[] {
-    const count = this.collectedCount;
-    if (count <= 0) return [];
-
-    const scale = 0.68 + Math.min(count, 20) * 0.07;
-    const cx = width / 2;
-    const cy = height * 0.72;
-    const members = Math.min(count, 21);
-    const positions: MemberPos[] = [];
-
-    for (let i = 0; i < members; i++) {
-      const angle = p.map(i, 0, members, p.PI * 0.15, p.PI * 0.85);
-      const r = 80 + (i % 3) * 18;
-      const lx = p.cos(angle) * r * (i % 2 === 0 ? 1 : 0.85);
-      const ly = -p.sin(angle) * r * 0.35 - 10;
-      const bob = p.sin(p.frameCount * 0.05 + i * 0.7) * 3 + beatPulse * 5;
-      positions.push({ x: cx + lx * scale, y: cy + (ly + bob) * scale });
-    }
-    return positions;
+  ): { x: number; y: number }[] {
+    return computeOngakutaiMemberPositions(
+      this.collectedCount,
+      width,
+      height,
+      beatPulse,
+      p.frameCount,
+    );
   }
 
   drawMusicBand(

@@ -9,16 +9,20 @@ import {
   drawWhiteVignette,
   ParticleField,
 } from "./stageRenderer";
+import { MaruHikariLayer } from "./maruHikariLayer";
 
 export function createSketch(stageManager: StageManager, host: HTMLElement): p5 {
   const particles = new ParticleField();
+  const maruHikari = new MaruHikariLayer();
   let lastFrameMs = performance.now();
+  let canvasEl: HTMLCanvasElement | null = null;
 
   const sketch = (p: p5) => {
     p.setup = () => {
       const canvas = p.createCanvas(host.clientWidth, host.clientHeight);
       canvas.parent(host);
-      canvas.elt.style.pointerEvents = "none";
+      canvasEl = canvas.elt as HTMLCanvasElement;
+      canvasEl.style.pointerEvents = "none";
       p.textFont("Noto Sans JP, sans-serif");
       p.angleMode(p.RADIANS);
       stageManager.initCanvas(p.width, p.height);
@@ -37,6 +41,22 @@ export function createSketch(stageManager: StageManager, host: HTMLElement): p5 
       const { runtime, displayTheme, session, smog, notes } = stageManager.getSnapshot();
       const w = p.width;
       const h = p.height;
+      const maruActive = runtime.maruHikariAlpha > 0.01;
+      const smogWipe = stageManager.isSmogWipeActive();
+
+      document.getElementById("app")?.classList.toggle("maru-hikari-chu", maruActive);
+      document.getElementById("app")?.classList.toggle("smog-chu", smogWipe);
+      if (canvasEl) 
+      {
+        canvasEl.style.pointerEvents = smogWipe ? "auto" : "none";
+      }
+
+      if (maruActive) 
+      {
+        maruHikari.draw(p, w, h, runtime.maruHikariFade, runtime.maruHikariAlpha, p.frameCount);
+        return;
+      }
+
       const isWhitePhase = runtime.colorSpread < 0.35 && runtime.narrativePhase !== "finale";
       const underSmog = smog.active || runtime.smogRevealed;
       const plainness =
@@ -71,9 +91,11 @@ export function createSketch(stageManager: StageManager, host: HTMLElement): p5 
       p.pop();
 
       const members = notes.getMemberPositions(p, w, h, runtime.beatPulse);
+      
       if (notes.collectedCount > 0 && !smog.active) {
         particles.spawnFromBandMembers(p, members, displayTheme, runtime.beatPulse);
       }
+
       particles.update(p, w, h);
       particles.draw(p, displayTheme, runtime.beatPulse);
 
@@ -86,12 +108,36 @@ export function createSketch(stageManager: StageManager, host: HTMLElement): p5 
       drawSceneFlash(p, w, h, runtime.sceneFlash);
     };
 
+    const emitSmogPointer = (x: number, y: number, drag: boolean): void => {
+      
+      if (!stageManager.isSmogWipeActive()) return;
+
+      if (drag) 
+      {
+        stageManager.pointerDragged(x, y);
+      } 
+      else 
+      {
+        stageManager.pointerPressed(x, y);
+      }
+    };
+
     p.mousePressed = () => {
-      stageManager.pointerPressed(p.mouseX, p.mouseY);
+      emitSmogPointer(p.mouseX, p.mouseY, false);
     };
 
     p.mouseDragged = () => {
-      stageManager.pointerDragged(p.mouseX, p.mouseY);
+      emitSmogPointer(p.mouseX, p.mouseY, true);
+    };
+
+    p.touchStarted = () => {
+      emitSmogPointer(p.mouseX, p.mouseY, false);
+      return false;
+    };
+
+    p.touchMoved = () => {
+      emitSmogPointer(p.mouseX, p.mouseY, true);
+      return false;
     };
   };
 

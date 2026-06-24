@@ -20,6 +20,10 @@ export interface StageRuntime {
   jikanKasoku: number;
   /** 横方向スクロール量（px 相当） */
   jikanKasokuScroll: number;
+  /** -1=非表示, 0–1=心の球体の光が弱まる進行 */
+  maruHikariFade: number;
+  /** 0–1=演出レイヤー全体の不透明度 */
+  maruHikariAlpha: number;
 }
 
 export function createInitialStageRuntime(theme: StageTheme): StageRuntime {
@@ -39,5 +43,7 @@ export function createInitialStageRuntime(theme: StageTheme): StageRuntime {
     hiddenMelody: 0,
     jikanKasoku: 0,
     jikanKasokuScroll: 0,
+    maruHikariFade: -1,
+    maruHikariAlpha: 0,
   };
 }
