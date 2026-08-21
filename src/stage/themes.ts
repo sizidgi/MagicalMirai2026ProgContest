@@ -205,7 +205,7 @@ export function applyDesaturate(
 
 const WHITE: [number, number, number] = [244, 244, 248];
 
-/** ユーザーの色と白い世界の物語をテーマに反映 */
+/** 白い世界の物語をテーマに反映 */
 export function applyUserNarrativeToTheme(
   base: StageTheme,
   userColor: [number, number, number],
